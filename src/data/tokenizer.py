@@ -11,10 +11,11 @@ class Tokenizer():
         logger.info('Tokenizer initialization completed.')
 
     def tokenize(self, text: str) -> list[str]:
-        return self.tokenizer.tokenize(text)
+        return self.tokenizer.tokenize(
+            self.tokenizer.bos_token + text + self.tokenizer.eos_token
+        )
 
-
-    def tokenize_as_ids(self, text: str) -> list[int]:
+    def encode(self, text: str) -> list[int]:
         tokens = self.tokenize(text)
         return self.tokenizer.convert_tokens_to_ids(tokens)
 
