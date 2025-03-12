@@ -1,4 +1,13 @@
+
+
+# train|inference
+mode: train
+
+# cpu | cuda
+device: cpu
+
+logging_level: INFO
+
 data:
-  aneks_path: "data/aneks/processed/aneks.csv"
-  vocab_word2idx: "data/vocab/processed/word2idx.json"
-  vocab_idx2embedding: "data/vocab/idx2embedding.json"
+  aneks_path: data/aneks/processed/aneks.json
+  vocab_path: data/vocab/
