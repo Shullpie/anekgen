@@ -1,3 +1,4 @@
+import torch
 import logging
 from transformers import AutoTokenizer
 from config import config
@@ -15,9 +16,9 @@ class Tokenizer():
             self.tokenizer.bos_token + text + self.tokenizer.eos_token
         )
 
-    def encode(self, text: str) -> list[int]:
+    def encode(self, text: str) -> torch.Tensor:
         tokens = self.tokenize(text)
-        return self.tokenizer.convert_tokens_to_ids(tokens)
+        return torch.LongTensor(self.tokenizer.convert_tokens_to_ids(tokens))
 
     @staticmethod
     def _get_tokenizer() -> AutoTokenizer:
