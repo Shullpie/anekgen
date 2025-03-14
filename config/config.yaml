@@ -8,6 +8,12 @@ device: cpu
 
 logging_level: INFO
 
+dataloader:
+  batch_size: 4
+  
+
 data:
-  aneks_path: data/aneks/processed/aneks.json
+  aneks_path:
+    train: data/aneks/processed/aneks.json
+    test: data/aneks/processed/aneks.json
   vocab_path: data/vocab/
