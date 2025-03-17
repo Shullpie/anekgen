@@ -2,15 +2,39 @@
 
 # train|inference
 mode: train
-
-# cpu | cuda
 device: cpu
-
 logging_level: INFO
+
+model: RNN
+epoches: 100
+optimizer: Adam
+make_checkpoint_every_n_epoch: 5
+# cpu | cuda
+
+optimizer:
+  name: adam
+  lr: 1e-3
+
+scheduler:
+  scheme: ReduceLROnPlateau
+  factor: .1
+  patience: 15
+  cooldown: 10
+  threshold: 1e-6
+  eps: 1e-12
+
+archs:
+  embedding_size: 100
+  RNN:
+    # RNN | LSTM | GRU
+    block: LSTM
+    num_layers: 4
+    block_dropout: .1
+
+    output_dropout: .1
 
 dataloader:
   batch_size: 4
-  
 
 data:
   aneks_path:
