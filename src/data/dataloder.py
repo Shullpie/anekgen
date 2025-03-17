@@ -9,11 +9,16 @@ from config import config
 
 logger = logging.getLogger(__name__)
 
-def get_dataloder(dataset_type: Literal['train'] | Literal['test'], pad_idx: int) -> DataLoader:
+def get_dataloder(dataset_type: Literal['train'] | Literal['test']) -> DataLoader:
     logger.info('%sDataloader initialization started', dataset_type)
     dataset = create_dataset(dataset_type=dataset_type)
     batch_size = config['dataloader']['batch_size']
-    dl = DataLoader(dataset, batch_size=batch_size, collate_fn=collate_fn(pad_idx), pin_memory=True)
+    dl = DataLoader(
+        dataset, 
+        batch_size=batch_size, 
+        collate_fn=collate_fn(dataset.tokenizer.get_pad_idx()), 
+        pin_memory=True
+    )
     logger.info('%sDataloader initialization completed.', dataset_type)
     return dl
     

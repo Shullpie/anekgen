@@ -20,7 +20,7 @@ class AnekDataset(Dataset):
                 self.aneks = json.load(f)
             logger.info('%s loaded to self.aneks.', dataset_type)
         logger.info('AnekDataset(%s) initialization completed.', dataset_type)
-
+    
     def __getitem__(self, idx: int) -> torch.Tensor:
         anek = self.aneks[str(idx)]
         return self.tokenizer.encode(anek)
