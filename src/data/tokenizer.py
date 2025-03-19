@@ -29,6 +29,6 @@ class Tokenizer():
 
     @staticmethod
     def _get_tokenizer() -> AutoTokenizer:
-       return AutoTokenizer.from_pretrained(config['data']['vocab_path'])
+       return AutoTokenizer.from_pretrained(config['data']['tokens_path'])
     
 
