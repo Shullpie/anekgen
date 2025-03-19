@@ -62,5 +62,5 @@ def get_optimizer(model_params: torch.Tensor, optimizer_options: dict) -> Optimi
     else:
         raise NotImplementedError(
             f'Optimizer [{name}] is not recognized. optimizers.py doesn\'t know {[name]}.')
-    logger.info('Optimizer: %s.', name)
+    logger.info('Optimizer: %s.', optimizer)
     return optimizer

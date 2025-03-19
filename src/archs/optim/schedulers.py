@@ -65,4 +65,5 @@ def get_scheduler(optimizer: Optimizer, option_scheduler: dict) -> Callable:
         raise NotImplementedError(
             f'Neural Network [{scheme}] is not recognized. networks.py doesn\'t know {[scheme]}')
     logger.info('Scheduler: %s.', scheme)
+    logger.info('Scheduler params: %s.', scheduler.state_dict())
     return scheduler
