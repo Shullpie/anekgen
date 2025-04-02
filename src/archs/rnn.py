@@ -9,7 +9,7 @@ from src.archs.optim.blocks import get_block
 logger = logging.getLogger(__name__)
 
 class RNN(nn.Module):
-    def __init__(self, padding_idx: int, vocab_size: int):
+    def __init__(self, padding_idx: int, vocab_size: int = 0):
         super().__init__()
         self.embedding_size = config['archs']['embedding_size']
         self.hidden_size = config['archs']['RNN']['hidden_size']
@@ -32,10 +32,10 @@ class RNN(nn.Module):
         )
 
         self.output = nn.Sequential(
-            nn.Linear(in_features=self.hidden_size, out_features=self.hidden_size),
+            nn.Linear(in_features=self.hidden_size, out_features=256),
             nn.LeakyReLU(inplace=True),
             nn.Dropout1d(float(config['archs']['RNN']['output_dropout'])),
-            nn.Linear(in_features=self.hidden_size, out_features=self.vocab_size)
+            nn.Linear(in_features=256, out_features=self.vocab_size)
         )
         logger.info('RNN %s initialization completed.', self.block._get_name())
 

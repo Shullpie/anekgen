@@ -10,6 +10,9 @@ class Tokenizer():
         logger.info('Tokenizer initialization started.')
         self.tokenizer = self._get_tokenizer()
         logger.info('Tokenizer initialization completed.')
+        self.pad_idx = self.tokenizer.convert_tokens_to_ids(self.tokenizer.pad_token)
+        self.vocab_size = len(self)
+
 
     def __len__(self):
         return len(self.tokenizer)
@@ -22,10 +25,6 @@ class Tokenizer():
     def encode(self, text: str) -> torch.Tensor:
         tokens = self.tokenize(text)
         return torch.LongTensor(self.tokenizer.convert_tokens_to_ids(tokens))
-
-    def get_pad_idx(self):
-        return self.tokenizer.convert_tokens_to_ids(self.tokenizer.pad_token)
-    
 
     @staticmethod
     def _get_tokenizer() -> AutoTokenizer:

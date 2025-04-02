@@ -16,7 +16,7 @@ def get_dataloder(dataset_type: Literal['train'] | Literal['test']) -> DataLoade
     dl = DataLoader(
         dataset, 
         batch_size=batch_size, 
-        collate_fn=collate_fn(dataset.tokenizer.get_pad_idx()), 
+        collate_fn=collate_fn(dataset.tokenizer.pad_idx), 
         pin_memory=True,
         shuffle=True
     )

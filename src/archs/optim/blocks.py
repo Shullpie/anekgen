@@ -7,6 +7,7 @@ def get_block(embedding_size: int) -> nn.RNN | nn.LSTM | nn.GRU:
     num_layers = config['archs']['RNN']['num_layers']
     block_dropout = config['archs']['RNN']['block_dropout']
     hidden_size = config['archs']['RNN']['hidden_size']
+    bidirectional = config['archs']['RNN']['bidirectional']
 
     if block_name == 'LSTM':
         from torch.nn import LSTM as block
@@ -19,6 +20,7 @@ def get_block(embedding_size: int) -> nn.RNN | nn.LSTM | nn.GRU:
     return block(
             input_size=embedding_size,
             hidden_size=hidden_size,
+            bidirectional=bidirectional,
             num_layers=num_layers,
             dropout=block_dropout,
             bias=True,

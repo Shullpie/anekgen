@@ -15,14 +15,17 @@ logger = logging.getLogger(__name__)
 
 class BaseModel:
     def __init__(self):
+        self.curr_epoch = 1        
+        self.train_losses = []
+        self.test_losses = []
+
         self.train_loader = get_dataloder('train')
         self.test_loader = get_dataloder('test')
         self.n_train_batches = len(self.train_loader)
         self.n_test_batches = len(self.test_loader)
-
         self.model = get_nn_model(model_name=config['model'],
-                                  pad_idx=self.train_loader.dataset.tokenizer.get_pad_idx(),
-                                  vocab_size=len(self.train_loader.dataset.tokenizer))
+                                  pad_idx=self.train_loader.dataset.tokenizer.pad_idx,
+                                  vocab_size=self.train_loader.dataset.tokenizer.vocab_size)
                                   
         self.optimizer = get_optimizer(model_params=self.model.parameters(), 
                                        optimizer_options=config['optimizer'])
@@ -43,7 +46,7 @@ class BaseModel:
         if self.empty_cuda_cache_every_n_epoch:
             logger.info('Empty cuda cache every %d.', self.empty_cuda_cache_every_n_epoch)
 
-        self.loss = CrossEntropyLoss()
+        self.loss = CrossEntropyLoss(ignore_index=self.train_loader.dataset.tokenizer.pad_idx)
         logger.info('Loss function: %s.', self.loss._get_name())
 
         self.amp = config['amp']['enabled']
@@ -63,10 +66,6 @@ class BaseModel:
         if embeddings_path:
             self.load_embeddings(embeddings_path)
             logger.info('Embeddings loaded from %s.', embeddings_path)
-
-        self.train_losses = []
-        self.test_losses = []
-
 
     def fit(self):
         NotImplementedError('Do not use BaseModel. Please, use concrete pipeline instand.')
@@ -107,14 +106,18 @@ class BaseModel:
 
 
     def load_model_from_checkoint(self, checkpoint_path: str) -> None:
-        checkpoint = torch.load(checkpoint_path)
+        self.model.to(self.device)
+        checkpoint = torch.load(checkpoint_path, map_location=self.device)
         self.model.load_state_dict(checkpoint['model_state_dict'])
         self.optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
         self.scheduler.load_state_dict(checkpoint['scheduler_state_dict'])
         self.train_losses = checkpoint['train_losses']
         self.test_losses = checkpoint['test_losses']
         self.curr_epoch = checkpoint['epoch'] + 1
+        logger.info('Optimizer: %s.', self.optimizer)
+        logger.info('Scheduler params: %s.', self.scheduler.state_dict())
 
     def load_embeddings(self, embeddings_path: str):
-        loaded_embeddings = torch.load(embeddings_path)
+        self.model.to(self.device)
+        loaded_embeddings = torch.load(embeddings_path, map_location=self.device)
         self.model.embeddings.from_pretrained(loaded_embeddings)

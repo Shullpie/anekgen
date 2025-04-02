@@ -1,16 +1,21 @@
+import logging
 
 import torch
 from src.model.basemodel import BaseModel
 from tqdm import tqdm
 from torch.amp import autocast
 
+logger = logging.getLogger(__name__)
+
 class RNNModel(BaseModel):
     def __init__(self):
         super().__init__()
     
     def fit(self):
+        logger.info('Scheduler params: %s.', self.scheduler.state_dict())
         self.model.to(self.device)
-        for epoch in range(1, self.n_epoches+1):
+        print(f'lr: {self.scheduler._last_lr[0]}')
+        for epoch in range(self.curr_epoch, self.n_epoches+1):
             train_loss = self.train_epoch(epoch)
             self.train_losses.append(train_loss)
             
@@ -25,7 +30,7 @@ class RNNModel(BaseModel):
             if self.empty_cuda_cache_every_n_epoch and epoch%self.empty_cuda_cache_every_n_epoch == 0:
                 torch.cuda.empty_cache()
 
-            print(train_loss, test_loss)
+            print(f'train:, {train_loss}, test: {test_loss}, lr: {self.scheduler._last_lr[0]}')
 
     def train_epoch(self, epoch: int) -> float:
         self.model.train()
@@ -40,11 +45,14 @@ class RNNModel(BaseModel):
 
 
     def train_batch(self, batch: torch.Tensor) -> float:
-        
         batch = batch.to(self.device)
+        self.optimizer.zero_grad()
+
         with autocast(device_type=self.device, dtype=torch.float16, enabled=self.amp):
             output = self.model(batch[:, :-1]).transpose(1, 2)
             loss = self.loss(output, batch[:, 1:])
+            # print(output.shape, batch.)
+            # print(output.shape, batch[:, 1:].shape)
 
         if self.amp:
             self.scaler.scale(loss).backward()
@@ -53,6 +61,7 @@ class RNNModel(BaseModel):
         else:
             loss.backward()
             self.optimizer.step()
+        torch.cuda.empty_cache()
 
         return loss.item()
 
@@ -70,5 +79,6 @@ class RNNModel(BaseModel):
         batch = batch.to(self.device)
         output = self.model(batch[:, :-1]).transpose(1, 2)
         loss = self.loss(output, batch[:, 1:])
+        torch.cuda.empty_cache()
         return loss.item()
 
