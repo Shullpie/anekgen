@@ -1,6 +1,6 @@
 import torch
 import logging
-from transformers import AutoTokenizer
+from transformers import PreTrainedTokenizerFast
 from config import config
 
 logger = logging.getLogger(__name__)
@@ -11,7 +11,8 @@ class Tokenizer():
         self.tokenizer = self._get_tokenizer()
         logger.info('Tokenizer initialization completed.')
         self.pad_idx = self.tokenizer.convert_tokens_to_ids(self.tokenizer.pad_token)
-        self.vocab_size = len(self)
+        self.eos_idx = self.tokenizer.convert_tokens_to_ids(self.tokenizer.eos_token)
+        self.vocab_size = self.tokenizer.vocab_size
 
 
     def __len__(self):
@@ -25,9 +26,22 @@ class Tokenizer():
     def encode(self, text: str) -> torch.Tensor:
         tokens = self.tokenize(text)
         return torch.LongTensor(self.tokenizer.convert_tokens_to_ids(tokens))
+    
+    def decode(self, *args, **kwargs):
+        return self.tokenizer.decode(*args, **kwargs)
 
     @staticmethod
-    def _get_tokenizer() -> AutoTokenizer:
-       return AutoTokenizer.from_pretrained(config['data']['tokens_path'])
+    def _get_tokenizer() -> PreTrainedTokenizerFast:
+       return  PreTrainedTokenizerFast(
+            tokenizer_file=config['data']['tokenizer_path'],
+            unk_token="[UNK]",
+            pad_token="[PAD]",
+            cls_token="[CLS]",
+            sep_token="[SEP]",
+            mask_token="[MASK]",
+            bos_token='[BOS]',
+            eos_token='[EOS]'
+        )
+    
     
 

@@ -22,21 +22,24 @@ class RNN(nn.Module):
 
         self.batch_size = config['dataloader']['batch_size']
         self.embedding_size = config['archs']['embedding_size']
+        # self.out_dropout = config['archs']['RNN']['out_dropout']
         self.vocab_size = vocab_size
         self.padding_idx = padding_idx
 
         self.embeddings = nn.Embedding(
             self.vocab_size, 
-            embedding_dim=config['archs']['embedding_size'],
+            embedding_dim=self.embedding_size,
             padding_idx=self.padding_idx,
         )
 
-        self.output = nn.Sequential(
-            nn.Linear(in_features=self.hidden_size, out_features=256),
-            nn.LeakyReLU(inplace=True),
-            nn.Dropout1d(float(config['archs']['RNN']['output_dropout'])),
-            nn.Linear(in_features=256, out_features=self.vocab_size)
-        )
+        # self.output = nn.Sequential(
+        #     nn.Linear(in_features=self.hidden_size, out_features=self.hidden_size),
+        #     nn.LeakyReLU(),
+        #     nn.Dropout1d(self.out_dropout),
+        #     nn.Linear(self.hidden_size, self.vocab_size)
+        # )
+
+        self.output  = nn.Linear(self.hidden_size, self.vocab_size)
         logger.info('RNN %s initialization completed.', self.block._get_name())
 
     # TODO output alias

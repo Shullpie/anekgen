@@ -12,9 +12,7 @@ class RNNModel(BaseModel):
         super().__init__()
     
     def fit(self):
-        logger.info('Scheduler params: %s.', self.scheduler.state_dict())
         self.model.to(self.device)
-        print(f'lr: {self.scheduler._last_lr[0]}')
         for epoch in range(self.curr_epoch, self.n_epoches+1):
             train_loss = self.train_epoch(epoch)
             self.train_losses.append(train_loss)
@@ -26,9 +24,6 @@ class RNNModel(BaseModel):
             if self.make_checkpoint_every_n_epoch and epoch % self.make_checkpoint_every_n_epoch == 0:
                 self._make_checkpoint(epoch)
                 self._save_embeddings(epoch)
-            
-            if self.empty_cuda_cache_every_n_epoch and epoch%self.empty_cuda_cache_every_n_epoch == 0:
-                torch.cuda.empty_cache()
 
             print(f'train:, {train_loss}, test: {test_loss}, lr: {self.scheduler._last_lr[0]}')
 
@@ -45,14 +40,12 @@ class RNNModel(BaseModel):
 
 
     def train_batch(self, batch: torch.Tensor) -> float:
+        torch.cuda.empty_cache()
         batch = batch.to(self.device)
         self.optimizer.zero_grad()
-
         with autocast(device_type=self.device, dtype=torch.float16, enabled=self.amp):
             output = self.model(batch[:, :-1]).transpose(1, 2)
             loss = self.loss(output, batch[:, 1:])
-            # print(output.shape, batch.)
-            # print(output.shape, batch[:, 1:].shape)
 
         if self.amp:
             self.scaler.scale(loss).backward()
@@ -61,7 +54,6 @@ class RNNModel(BaseModel):
         else:
             loss.backward()
             self.optimizer.step()
-        torch.cuda.empty_cache()
 
         return loss.item()
 
@@ -76,9 +68,9 @@ class RNNModel(BaseModel):
         return epoch_loss
     
     def test_batch(self, batch: torch.Tensor):
+        torch.cuda.empty_cache()
         batch = batch.to(self.device)
         output = self.model(batch[:, :-1]).transpose(1, 2)
         loss = self.loss(output, batch[:, 1:])
-        torch.cuda.empty_cache()
         return loss.item()
 

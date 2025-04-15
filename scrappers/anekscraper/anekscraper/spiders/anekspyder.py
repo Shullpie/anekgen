@@ -1,6 +1,4 @@
 import scrapy
-import w3lib.html
-import re
 from ..items import AnekItem
 
 
