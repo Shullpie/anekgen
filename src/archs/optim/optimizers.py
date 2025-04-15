@@ -1,9 +1,5 @@
-import logging
-
 import torch
 from torch.optim import Optimizer
-
-logger = logging.getLogger(__name__)
 
 def get_optimizer(model_params: torch.Tensor, optimizer_options: dict) -> Optimizer:
     name = optimizer_options.get('name', None).lower()
@@ -62,5 +58,4 @@ def get_optimizer(model_params: torch.Tensor, optimizer_options: dict) -> Optimi
     else:
         raise NotImplementedError(
             f'Optimizer [{name}] is not recognized. optimizers.py doesn\'t know {[name]}.')
-    logger.info('Optimizer: %s.', optimizer)
     return optimizer

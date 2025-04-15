@@ -1,10 +1,7 @@
-import logging
 from typing import Callable
 
 from torch.optim import lr_scheduler
 from torch.optim import Optimizer
-
-logger = logging.getLogger(__name__)
 
 def get_scheduler(optimizer: Optimizer, option_scheduler: dict) -> Callable:
     scheme = option_scheduler.get('scheme', None)
@@ -64,6 +61,4 @@ def get_scheduler(optimizer: Optimizer, option_scheduler: dict) -> Callable:
     else:
         raise NotImplementedError(
             f'Neural Network [{scheme}] is not recognized. networks.py doesn\'t know {[scheme]}')
-    logger.info('Scheduler: %s.', scheme)
-    logger.info('Scheduler params: %s.', scheduler.state_dict())
     return scheduler

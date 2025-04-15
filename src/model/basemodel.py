@@ -26,11 +26,6 @@ class BaseModel:
         self.model = get_nn_model(model_name=config['model'],
                                   pad_idx=self.train_loader.dataset.tokenizer.pad_idx,
                                   vocab_size=self.train_loader.dataset.tokenizer.vocab_size)
-                                  
-        self.optimizer = get_optimizer(model_params=self.model.parameters(), 
-                                       optimizer_options=config['optimizer'])
-        self.scheduler = get_scheduler(optimizer=self.optimizer, 
-                                       option_scheduler=config['scheduler'])
         
         self.device = config['device']
         logger.info('Device: %s.', self.device)
@@ -41,21 +36,25 @@ class BaseModel:
         self.make_checkpoint_every_n_epoch = config['make_checkpoint_every_n_epoch']
         if self.make_checkpoint_every_n_epoch:
             logger.info('Make checpoints every %d epoches.', self.make_checkpoint_every_n_epoch)
-        
-        self.empty_cuda_cache_every_n_epoch = config['empty_cuda_cache_every_n_epoch']
-        if self.empty_cuda_cache_every_n_epoch:
-            logger.info('Empty cuda cache every %d.', self.empty_cuda_cache_every_n_epoch)
 
         self.loss = CrossEntropyLoss(ignore_index=self.train_loader.dataset.tokenizer.pad_idx)
         logger.info('Loss function: %s.', self.loss._get_name())
 
         self.amp = config['amp']['enabled']
-
         if self.amp:
             self.scaler = GradScaler(init_scale=config['amp']['scaler_init_scale'])
             logger.info('AMP enabled.')
+        else: 
+            logger.info('AMP disabled.')
         
         self.save_checkpoint_path = config['save_checkpoint_path']
+        
+        load_checkpoint_path = config['load_checkpoint_path']
+        
+        self.optimizer = get_optimizer(model_params=self.model.parameters(), 
+                                       optimizer_options=config['optimizer'])
+        self.scheduler = get_scheduler(optimizer=self.optimizer, 
+                                       option_scheduler=config['scheduler'])
         
         load_checkpoint_path = config['load_checkpoint_path']
         if load_checkpoint_path:
@@ -66,6 +65,10 @@ class BaseModel:
         if embeddings_path:
             self.load_embeddings(embeddings_path)
             logger.info('Embeddings loaded from %s.', embeddings_path)
+        
+        logger.info('Optimizer: %s.', self.optimizer)
+        logger.info('Scheduler: %s.', self.scheduler)
+        logger.info('Scheduler params: %s.', self.scheduler.state_dict())
 
     def fit(self):
         NotImplementedError('Do not use BaseModel. Please, use concrete pipeline instand.')
@@ -114,8 +117,6 @@ class BaseModel:
         self.train_losses = checkpoint['train_losses']
         self.test_losses = checkpoint['test_losses']
         self.curr_epoch = checkpoint['epoch'] + 1
-        logger.info('Optimizer: %s.', self.optimizer)
-        logger.info('Scheduler params: %s.', self.scheduler.state_dict())
 
     def load_embeddings(self, embeddings_path: str):
         self.model.to(self.device)
