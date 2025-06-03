@@ -20,7 +20,6 @@ class BaseModel:
         
         self.device = config['device']
         logger.info('Device: %s.', self.device)
-        print(logger)
         
         selected_model = config['selected_model']
         self.train_loader = get_dataloader(dataset_type='train', 

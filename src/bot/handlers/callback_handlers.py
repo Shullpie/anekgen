@@ -92,7 +92,7 @@ async def next_anek(callback_query: CallbackQuery, state: FSMContext):
 async def not_handled(callback_query: CallbackQuery, state: FSMContext):
     await callback_query.message.delete()
     await state.set_state(Model.menu)
-    await state.set_data({'model': 'RNN', 'prefix': ''})
+    await state.set_data({'model': 'GPT', 'prefix': ''})
     await main_menu(callback_query.message, state)
 
 
