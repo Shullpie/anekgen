@@ -5,7 +5,6 @@ class NucleusSampler:
     def __init__(self, p: float = 0.95, temperature: float = .7):
         self.p = p
         self.temperature = temperature
-        print(self.temperature)
 
     def __call__(self, logits: torch.Tensor):
         logits = logits/self.temperature

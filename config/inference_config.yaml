@@ -1,4 +1,5 @@
 max_len: 256
+logging_level: INFO
 
 archs:
   selected_model: gpt

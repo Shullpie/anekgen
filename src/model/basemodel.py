@@ -5,7 +5,7 @@ import torch
 from torch.nn import CrossEntropyLoss
 from torch.amp import GradScaler
 
-from src.data.dataloder import get_dataloder
+from src.data.dataloader import get_dataloader
 from src.archs import get_nn_model
 from src.optim.optimizers import get_optimizer
 from src.optim.schedulers import get_scheduler
@@ -20,16 +20,17 @@ class BaseModel:
         
         self.device = config['device']
         logger.info('Device: %s.', self.device)
+        print(logger)
         
         selected_model = config['selected_model']
-        self.train_loader = get_dataloder(dataset_type='train', 
+        self.train_loader = get_dataloader(dataset_type='train', 
                                           dataset_path=config['data']['aneks_path'],
                                           batch_size=config['data']['batch_size'],
                                           tokenizer_path=config['archs'][selected_model]['tokenizer_path'])
-        self.test_loader = get_dataloder(dataset_type='test', 
-                                         dataset_path=config['data']['aneks_path'],
-                                         batch_size=config['data']['batch_size'],
-                                         tokenizer_path=config['archs'][selected_model]['tokenizer_path'])
+        self.test_loader = get_dataloader(dataset_type='test', 
+                                          dataset_path=config['data']['aneks_path'],
+                                          batch_size=config['data']['batch_size'],
+                                          tokenizer_path=config['archs'][selected_model]['tokenizer_path'])
 
         self.batch_size = self.train_loader.batch_size
         self.n_train_batches = len(self.train_loader)
