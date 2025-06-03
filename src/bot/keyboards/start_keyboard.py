@@ -2,8 +2,8 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 from aiogram.types import InlineKeyboardButton
 
 def start_keyboard():
-    rnn_model = InlineKeyboardButton(
+    start = InlineKeyboardButton(
         text='Начнем!', 
         callback_data='main_menu'
     )
-    return InlineKeyboardBuilder([[rnn_model]]).as_markup()
+    return InlineKeyboardBuilder([[start]]).as_markup()

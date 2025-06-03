@@ -6,7 +6,7 @@ class AnekspyderSpider(scrapy.Spider):
     name = "anekspyder"
     allowed_domains = ["anekdotov.net"]
     # start_urls = ["https://anekdotov.net/anekdot/arc/180704.html"]
-    start_urls = ["https://anekdotov.net/aforizm/today.html"]
+    start_urls = ["https://anekdotov.net/anekdot/today.html"]
 
     def parse(self, response):
         aneks = response.xpath('//div[@class="anekdot"]')
@@ -17,6 +17,6 @@ class AnekspyderSpider(scrapy.Spider):
             anek_item['anek'] = anek.get()
             yield anek_item
         
-        if next_page is not None and next_page not in ('/aforizm/today.html'): 
+        if next_page is not None and next_page not in ('/anekdot/today.html'): 
             next_page = "https://anekdotov.net" + next_page
             yield response.follow(next_page, callback=self.parse)

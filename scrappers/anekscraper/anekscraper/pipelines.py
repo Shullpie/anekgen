@@ -21,8 +21,8 @@ class AnekscraperPipeline:
             # remove HTML tags, replace multiple spaces and switch to lowercase
             elif field_name == 'anek':
                 value = adapter.get(field_name)
-                value = w3lib.html.remove_tags(value).replace('\n', '')
-                adapter[field_name] = re.sub(r'\s+', ' ', value).strip().lower()
+                # value = w3lib.html.remove_tags(value).replace('\n', '')
+                adapter[field_name] = re.sub(r'\s+', ' ', value).strip()
         
         
         return item

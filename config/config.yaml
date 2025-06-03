@@ -1,56 +1,79 @@
 # train|inference
-mode: train
 device: cuda
 logging_level: INFO
 
-inference:
-  temperature: .1
-  model: RNN
-  max_len: 100
-  path: models/final/lstm512_4-57.pt
-
-model: RNN
+selected_model: rnn
 epoches: 150
-# optimizer: Adam
-make_checkpoint_every_n_epoch: 1
-load_checkpoint_path: models/final/lstm512_4-57.pt
-embeddings_path: False #data\embeddings\rnn_adam_reducelronplateau_0.pt
+make_checkpoint_every_n_epoch: 5
+load_checkpoint_path: models/checkpoints/rnn_adamw_reducelronplateau/70_epoch.pt
 
 amp:
   enabled: False
   scaler_init_scale: 256
 
 optimizer:
-  name: adam
+  name: adamw
   lr: 1e-3
+  weight_decay: 0.01
 
 scheduler:
-  scheme: ReduceLROnPlateau
-  factor: .1
-  patience: 8
-  cooldown: 5
-  threshold: 1e-3
-  eps: 1e-12
+  # scheme: cosine_warmup
+  # total_training_steps: 86055
+  scheme: reducelronplateau
+  factor: 0.1
+  patience: 3
+  cooldown: 3
 
 archs:
-  embedding_size: 250
-  RNN:
+  rnn:
     # RNN | LSTM | GRU
     block: LSTM
+    embedding_size: 512
     hidden_size: 512
     num_layers: 5
-    block_dropout: .2
+    block_dropout: .15
     bidirectional: False
+    tokenizer_path: data/tokenizers/gpt/tokenizer_gpt.json
+  
+  gpt:
+    n_layers: 10
+    embedding_size: 512
 
-dataloader:
-  batch_size: 64
+    positional_encoder:
+      type: learned
+      max_length: 256
+      dropout: 0.15
 
+    multihead:
+      n_heads: 8
+      dropout: 0.1
+
+      attention: 
+        size: 512
+        dropout: 0.1
+
+    feadforward:
+      dropout: 0.2
+    tokenizer_path: data/tokenizers/gpt/tokenizer_gpt.json
+
+  gpt_lora:
+    gradient_accumulation_steps: 10
+    model_path: models/final/gpt_lora
+    model_path_hf: 'ai-forever/rugpt3medium_based_on_gpt2'
+    tokenizer_path: data/tokenizers/gpt_lora
+
+    lora_config:
+      r: 32
+      target_modules: ['c_attn'] 
+      lora_alpha: 64
+      lora_dropout: 0.1
+      bias: 'none'
+      fan_in_fan_out: True
+      task_type: "CAUSAL_LM"
+      
 data:
-  aneks_path:
-    train: data/aneks/processed/train.json
-    test: data/aneks/processed/test.json
-  tokenizer_path: data/tokens/tokenizer.json
+  batch_size: 32
+  aneks_path: data/aneks/processed/for_lora/
 
 save_checkpoint_path: models/checkpoints/
-save_embeddings_path: data/embeddings/
 
