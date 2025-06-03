@@ -8,7 +8,7 @@ from src.bot import handlers
 from src.bot.keyboards.set_menu import set_main_menu
 load_dotenv()
 
-async def main():
+async def start_bot():
     bot_token = os.getenv('BOT_TOKEN')
     bot = Bot(bot_token)
     dp = Dispatcher()

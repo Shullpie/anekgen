@@ -7,9 +7,9 @@ from torch.amp import autocast
 
 logger = logging.getLogger(__name__)
 
-class RNNModel(BaseModel):
-    def __init__(self):
-        super().__init__()
+class TrainModel(BaseModel):
+    def __init__(self, config: dict):
+        super().__init__(config=config)
     
     def fit(self):
         self.model.to(self.device)
@@ -22,10 +22,9 @@ class RNNModel(BaseModel):
             self.scheduler.step(train_loss)
 
             if self.make_checkpoint_every_n_epoch and epoch % self.make_checkpoint_every_n_epoch == 0:
-                self._make_checkpoint(epoch)
-                self._save_embeddings(epoch)
+                self.make_checkpoint(epoch)
 
-            print(f'train:, {train_loss}, test: {test_loss}, lr: {self.scheduler._last_lr[0]}')
+            print(f'train:, {train_loss}, test:, {test_loss}, lr: {self.scheduler._last_lr[0]}')
 
     def train_epoch(self, epoch: int) -> float:
         self.model.train()
@@ -34,26 +33,26 @@ class RNNModel(BaseModel):
         for batch in tqdm(self.train_loader, desc=f'Epoch {epoch}/{self.n_epoches} - Train', ncols=200):
             loss = self.train_batch(batch)
             epoch_loss += loss
-        
+        self.optimizer.zero_grad()
         epoch_loss = epoch_loss / self.n_train_batches
         return epoch_loss
 
 
     def train_batch(self, batch: torch.Tensor) -> float:
-        torch.cuda.empty_cache()
-        batch = batch.to(self.device)
         self.optimizer.zero_grad()
         with autocast(device_type=self.device, dtype=torch.float16, enabled=self.amp):
-            output = self.model(batch[:, :-1]).transpose(1, 2)
-            loss = self.loss(output, batch[:, 1:])
+            output = self.model(**self.prepare_batch(batch)).transpose(1, 2)
+            loss = self.loss(output, self.prepare_batch(batch, train=False)['input_ids'])
 
         if self.amp:
             self.scaler.scale(loss).backward()
             self.scaler.step(self.optimizer)
             self.scaler.update()
+            self.scheduler.step()
         else:
             loss.backward()
             self.optimizer.step()
+            # self.scheduler.step()
 
         return loss.item()
 
@@ -68,9 +67,16 @@ class RNNModel(BaseModel):
         return epoch_loss
     
     def test_batch(self, batch: torch.Tensor):
-        torch.cuda.empty_cache()
-        batch = batch.to(self.device)
-        output = self.model(batch[:, :-1]).transpose(1, 2)
-        loss = self.loss(output, batch[:, 1:])
+        output = self.model(**self.prepare_batch(batch)).transpose(1, 2)
+        loss = self.loss(output, self.prepare_batch(batch, train=False)['input_ids'])
         return loss.item()
-
+    
+    def prepare_batch(self, batch, train=True):
+        t_batch = batch.copy() 
+        for key, value in t_batch.items():
+            if train:
+                t_batch[key] = value[:, :-1]
+            else:
+                t_batch[key] = value[:, 1:]
+        return t_batch.to(self.device)
+# 85

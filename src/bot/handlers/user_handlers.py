@@ -13,7 +13,7 @@ router = Router(name=__name__)
 @router.message(Command(commands=['start']))
 async def command_start(message: Message, state: FSMContext):
     await state.set_state(Model.menu)
-    await state.set_data({'model': 'RNN', 'prefix': '_'})
+    await state.set_data({'model': 'RNN', 'prefix': ''})
     await message.answer(
         START_MESSAGE, 
         parse_mode=ParseMode.HTML

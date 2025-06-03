@@ -2,6 +2,7 @@ from typing import Callable
 
 from torch.optim import lr_scheduler
 from torch.optim import Optimizer
+from transformers import get_cosine_schedule_with_warmup
 
 def get_scheduler(optimizer: Optimizer, option_scheduler: dict) -> Callable:
     scheme = option_scheduler.get('scheme', None)
@@ -57,7 +58,12 @@ def get_scheduler(optimizer: Optimizer, option_scheduler: dict) -> Callable:
             gamma=gamma,
             last_epoch=-1
         )
-        
+    elif scheme == 'cosine_warmup':
+        total_training_steps = option_scheduler.get('total_training_steps')
+        num_warmup_steps = int(total_training_steps * 0.05)
+        scheduler = get_cosine_schedule_with_warmup(optimizer,
+                                                    num_training_steps=total_training_steps,
+                                                    num_warmup_steps=num_warmup_steps)
     else:
         raise NotImplementedError(
             f'Neural Network [{scheme}] is not recognized. networks.py doesn\'t know {[scheme]}')

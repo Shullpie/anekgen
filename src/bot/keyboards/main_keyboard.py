@@ -4,7 +4,7 @@ from aiogram.types import InlineKeyboardButton
 def main_menu_keyboard():
     generate_button = InlineKeyboardButton(
         text='🤣 Начать генерацию', 
-        callback_data='generate_anek'
+        callback_data='generate'
     )
     change_model = InlineKeyboardButton(
         text='🤖 Модель',

@@ -6,8 +6,12 @@ def change_model_keyboard():
         text='RNN', 
         callback_data='rnn_selected'
     )
-    transformer_model = InlineKeyboardButton(
-        text='🤖 Трансформер [заменить на архитектуру]',
-        callback_data='transfromer_selected'
+    gpt_model = InlineKeyboardButton(
+        text='GPT',
+        callback_data='gpt_selected'
     )
-    return InlineKeyboardBuilder([[rnn_model, transformer_model]]).as_markup()
+    lora_model = InlineKeyboardButton(
+        text='GPT_LORA',
+        callback_data='lora_selected'
+    )
+    return InlineKeyboardBuilder([[rnn_model, gpt_model], [lora_model]]).as_markup()

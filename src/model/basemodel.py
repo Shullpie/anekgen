@@ -7,37 +7,55 @@ from torch.amp import GradScaler
 
 from src.data.dataloder import get_dataloder
 from src.archs import get_nn_model
-from src.archs.optim.optimizers import get_optimizer
-from src.archs.optim.schedulers import get_scheduler
-from config import config
+from src.optim.optimizers import get_optimizer
+from src.optim.schedulers import get_scheduler
 
 logger = logging.getLogger(__name__)
 
 class BaseModel:
-    def __init__(self):
+    def __init__(self, config: dict):
         self.curr_epoch = 1        
         self.train_losses = []
         self.test_losses = []
-
-        self.train_loader = get_dataloder('train')
-        self.test_loader = get_dataloder('test')
-        self.n_train_batches = len(self.train_loader)
-        self.n_test_batches = len(self.test_loader)
-        self.model = get_nn_model(model_name=config['model'],
-                                  pad_idx=self.train_loader.dataset.tokenizer.pad_idx,
-                                  vocab_size=self.train_loader.dataset.tokenizer.vocab_size)
         
         self.device = config['device']
         logger.info('Device: %s.', self.device)
+        
+        selected_model = config['selected_model']
+        self.train_loader = get_dataloder(dataset_type='train', 
+                                          dataset_path=config['data']['aneks_path'],
+                                          batch_size=config['data']['batch_size'],
+                                          tokenizer_path=config['archs'][selected_model]['tokenizer_path'])
+        self.test_loader = get_dataloder(dataset_type='test', 
+                                         dataset_path=config['data']['aneks_path'],
+                                         batch_size=config['data']['batch_size'],
+                                         tokenizer_path=config['archs'][selected_model]['tokenizer_path'])
+
+        self.batch_size = self.train_loader.batch_size
+        self.n_train_batches = len(self.train_loader)
+        self.n_test_batches = len(self.test_loader)
+
+        pad_idx = self.train_loader.dataset.tokenizer.pad_idx
+        vocab_size = self.train_loader.dataset.tokenizer.vocab_size
+        load_checkpoint_path = config['load_checkpoint_path']
+        
+
+        self.model = get_nn_model(model_name=config['selected_model'],
+                                  config=config,
+                                  pad_idx=pad_idx,
+                                  vocab_size=vocab_size,
+                                  load_checkpoint_path=load_checkpoint_path
+                                  ).to(self.device)
+        logger.info('Model params: \n %s', self.model)
 
         self.n_epoches = config['epoches']
         logger.info('Number of epoches: %s.', self.n_epoches)
 
         self.make_checkpoint_every_n_epoch = config['make_checkpoint_every_n_epoch']
         if self.make_checkpoint_every_n_epoch:
-            logger.info('Make checpoints every %d epoches.', self.make_checkpoint_every_n_epoch)
+            logger.info('Make checpoints every %s epoches.', self.make_checkpoint_every_n_epoch)
 
-        self.loss = CrossEntropyLoss(ignore_index=self.train_loader.dataset.tokenizer.pad_idx)
+        self.loss = CrossEntropyLoss(ignore_index=pad_idx, label_smoothing=0.1)
         logger.info('Loss function: %s.', self.loss._get_name())
 
         self.amp = config['amp']['enabled']
@@ -49,22 +67,14 @@ class BaseModel:
         
         self.save_checkpoint_path = config['save_checkpoint_path']
         
-        load_checkpoint_path = config['load_checkpoint_path']
-        
         self.optimizer = get_optimizer(model_params=self.model.parameters(), 
                                        optimizer_options=config['optimizer'])
         self.scheduler = get_scheduler(optimizer=self.optimizer, 
                                        option_scheduler=config['scheduler'])
         
-        load_checkpoint_path = config['load_checkpoint_path']
         if load_checkpoint_path:
             self.load_model_from_checkoint(load_checkpoint_path)
             logger.info('Model loaded from %s.', load_checkpoint_path)
-
-        embeddings_path = config['embeddings_path']
-        if embeddings_path:
-            self.load_embeddings(embeddings_path)
-            logger.info('Embeddings loaded from %s.', embeddings_path)
         
         logger.info('Optimizer: %s.', self.optimizer)
         logger.info('Scheduler: %s.', self.scheduler)
@@ -73,8 +83,8 @@ class BaseModel:
     def fit(self):
         NotImplementedError('Do not use BaseModel. Please, use concrete pipeline instand.')
 
-    def _make_checkpoint(self, cur_epoch: int) -> None:
-        path = config['save_checkpoint_path'] + f'{self.model._get_name()}_{type(self.optimizer).__name__}_' + \
+    def make_checkpoint(self, cur_epoch: int) -> None:
+        path = self.save_checkpoint_path + f'{self.model._get_name()}_{type(self.optimizer).__name__}_' + \
             f'{type(self.scheduler).__name__}/'
         path = path.lower()
 
@@ -95,18 +105,6 @@ class BaseModel:
             )
         except Exception as ex:
             self.logger.error(ex, exc_info=True)
-    
-    def _save_embeddings(self, cur_epoch: int) -> None:
-        path = config['save_embeddings_path']
-        file_name = f'{self.model._get_name()}_{type(self.optimizer).__name__}_' + \
-            f'{type(self.scheduler).__name__}_{cur_epoch}.pt'
-        file_name = file_name.lower()
-
-        try:
-            torch.save(self.model.embeddings.weight.data, path+file_name)
-        except Exception as ex:
-            self.logger.error(ex, exc_info=True)
-
 
     def load_model_from_checkoint(self, checkpoint_path: str) -> None:
         self.model.to(self.device)
@@ -118,7 +116,3 @@ class BaseModel:
         self.test_losses = checkpoint['test_losses']
         self.curr_epoch = checkpoint['epoch'] + 1
 
-    def load_embeddings(self, embeddings_path: str):
-        self.model.to(self.device)
-        loaded_embeddings = torch.load(embeddings_path, map_location=self.device)
-        self.model.embeddings.from_pretrained(loaded_embeddings)
