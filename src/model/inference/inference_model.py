@@ -62,6 +62,8 @@ class InferenceModel:
                                   skip_special_tokens=True, 
                                   clean_up_tokenization_spaces=True
                                   ).replace(' ##', '')
+        if token_count >= self.max_len:
+            x = x + '…'
         return x
 
     @staticmethod

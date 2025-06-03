@@ -8,7 +8,8 @@ from aiogram.fsm.context import FSMContext
 
 from src.bot.utils.states import Model
 from src.bot.keyboards.main_keyboard import main_menu_keyboard
-from src.bot.lexicon.lexicon_ru import START_MESSAGE, HELP_MESSAGE, MAIN_MENU_MESSAGE
+from src.bot.lexicon.lexicon_ru import (START_MESSAGE, HELP_MESSAGE, 
+                                        MAIN_MENU_MESSAGE, NOT_HANDLED_MESSAGE)
 
 router = Router(name=__name__)
 logger = logging.getLogger(__name__)
@@ -38,7 +39,8 @@ async def filled_prefix(message: Message, state: FSMContext):
     logger.info('%s (id: %s) added a prfix',
             message.from_user.full_name,
             message.from_user.id)
-    await state.update_data({'prefix': message.text})
+    text = '' if message.text in ('_', '"_"') else message.text
+    await state.update_data({'prefix': text})
     await main_menu(message, state)
     message.delete()
 
@@ -56,5 +58,7 @@ async def main_menu(message: Message, state: FSMContext):
         parse_mode=ParseMode.HTML
     )
     
-
+@router.message()
+async def not_handeled(message: Message):
+    await message.reply(NOT_HANDLED_MESSAGE)
 
