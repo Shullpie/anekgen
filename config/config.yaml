@@ -2,10 +2,10 @@
 device: cuda
 logging_level: INFO
 
-selected_model: rnn
+selected_model: gpt_lora
 epoches: 150
 make_checkpoint_every_n_epoch: 5
-load_checkpoint_path: models/checkpoints/rnn_adamw_reducelronplateau/70_epoch.pt
+load_checkpoint_path: False #models/checkpoints/rnn_adamw_reducelronplateau/70_epoch.pt
 
 amp:
   enabled: False

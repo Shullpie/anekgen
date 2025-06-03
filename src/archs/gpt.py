@@ -1,8 +1,8 @@
 import math
 import logging
+from typing import Literal
 
 import torch
-from typing import Literal
 import torch.nn as nn
 from torch.nn.functional import softmax
 

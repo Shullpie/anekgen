@@ -8,11 +8,11 @@ from src.data.collate_fn import collate_fn
 
 logger = logging.getLogger(__name__)
 
-def get_dataloder(dataset_type: Literal['train'] | Literal['test'], 
-                  dataset_path: str,
-                  tokenizer_path: str,
-                  batch_size: int
-                  ) -> DataLoader:
+def get_dataloader(dataset_type: Literal['train'] | Literal['test'], 
+                   dataset_path: str,
+                   tokenizer_path: str,
+                   batch_size: int
+                   ) -> DataLoader:
     logger.info('%sDataloader initialization started', dataset_type)
     dataset = create_dataset(dataset_type=dataset_type, 
                              dataset_path=dataset_path, 

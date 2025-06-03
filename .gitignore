@@ -1,7 +1,6 @@
 .venv
 test*
 structure.txt
-5.ipynb
 *__pycache__
 data/**/*.json
 data/**/*.csv

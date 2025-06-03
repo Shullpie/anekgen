@@ -1,6 +1,6 @@
 from config import config
 from src.utils.logger import configure_logging
-from torch.optim.lr_scheduler import ReduceLROnPlateau
+# from torch.optim.lr_scheduler import ReduceLROnPlateau
 
 def main():
     configure_logging(config['logging_level'])

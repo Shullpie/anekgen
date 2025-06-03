@@ -1,5 +1,4 @@
 import logging
-from config import config
 
 def configure_logging(logging_level: str):
     logging.basicConfig(

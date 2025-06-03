@@ -38,7 +38,7 @@ def get_nn_model(
     elif model_name == 'gpt_lora':
         try:
             m = AutoModelForCausalLM.from_pretrained(arch_params['model_path'])
-        except OSError:
+        except:
             m = AutoModelForCausalLM.from_pretrained(arch_params['model_path_hf'])
 
         if load_checkpoint_path:

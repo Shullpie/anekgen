@@ -1,7 +1,6 @@
 import torch
 from transformers.modeling_outputs import CausalLMOutputWithCrossAttentions
 
-from config import config
 from src.data.tokenizer import Tokenizer
 from src.data.nucleus_sampler import NucleusSampler
 from src.archs import get_nn_model
@@ -52,7 +51,6 @@ class InferenceModel:
                            truncation=True, 
                            return_token_type_ids=False)#[:-1]
         x = self.prepare_tokens(x)
-        print(x)
 
         while out != self.tokenizer.eos_idx and token_count < self.max_len:
             out  = self.next_token(x).unsqueeze(0)
